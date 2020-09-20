@@ -17,7 +17,7 @@ import { AddRemoveTabs } from '../../components/NavigationTabs'
 import { MinimalPositionCard } from '../../components/PositionCard'
 import Row, { RowBetween, RowFlat } from '../../components/Row'
 
-import { ROUTER_ADDRESS } from '../../constants'
+import { HELPERV1_ADDRESS } from '../../constants'
 import { PairState } from '../../data/Reserves'
 import { useActiveWeb3React } from '../../hooks'
 import { useCurrency } from '../../hooks/Tokens'
@@ -28,8 +28,8 @@ import { useDerivedMintInfo, useMintActionHandlers, useMintState } from '../../s
 
 import { useTransactionAdder } from '../../state/transactions/hooks'
 import { useIsExpertMode, useUserDeadline, useUserSlippageTolerance } from '../../state/user/hooks'
-import { TYPE } from '../../theme'
-import { calculateGasMargin, calculateSlippageAmount, getRouterContract } from '../../utils'
+import { ExternalLink, TYPE } from '../../theme'
+import { calculateGasMargin, /*calculateSlippageAmount, /*getRouterContract,*/ getHelperContract } from '../../utils'
 import { maxAmountSpend } from '../../utils/maxAmountSpend'
 import { wrappedCurrency } from '../../utils/wrappedCurrency'
 import AppBody from '../AppBody'
@@ -116,25 +116,26 @@ export default function AddLiquidity({
     {}
   )
 
-  // check whether the user has approved the router on the tokens
-  const [approvalA, approveACallback] = useApproveCallback(parsedAmounts[Field.CURRENCY_A], ROUTER_ADDRESS)
-  const [approvalB, approveBCallback] = useApproveCallback(parsedAmounts[Field.CURRENCY_B], ROUTER_ADDRESS)
+  // check whether the user has approved the helper on the tokens
+  const [approvalA, approveACallback] = useApproveCallback(parsedAmounts[Field.CURRENCY_A], HELPERV1_ADDRESS)
+  const [approvalB, approveBCallback] = useApproveCallback(parsedAmounts[Field.CURRENCY_B], HELPERV1_ADDRESS)
 
   const addTransaction = useTransactionAdder()
 
   async function onAdd() {
     if (!chainId || !library || !account) return
-    const router = getRouterContract(chainId, library, account)
+    // const router = getRouterContract(chainId, library, account)
+    const helper = getHelperContract(chainId, library, account)
 
     const { [Field.CURRENCY_A]: parsedAmountA, [Field.CURRENCY_B]: parsedAmountB } = parsedAmounts
     if (!parsedAmountA || !parsedAmountB || !currencyA || !currencyB) {
       return
     }
 
-    const amountsMin = {
-      [Field.CURRENCY_A]: calculateSlippageAmount(parsedAmountA, noLiquidity ? 0 : allowedSlippage)[0],
-      [Field.CURRENCY_B]: calculateSlippageAmount(parsedAmountB, noLiquidity ? 0 : allowedSlippage)[0]
-    }
+    // const amountsMin = {
+    //   [Field.CURRENCY_A]: calculateSlippageAmount(parsedAmountA, noLiquidity ? 0 : allowedSlippage)[0],
+    //   [Field.CURRENCY_B]: calculateSlippageAmount(parsedAmountB, noLiquidity ? 0 : allowedSlippage)[0]
+    // }
 
     const deadlineFromNow = Math.ceil(Date.now() / 1000) + deadline
 
@@ -144,27 +145,48 @@ export default function AddLiquidity({
       value: BigNumber | null
     if (currencyA === ETHER || currencyB === ETHER) {
       const tokenBIsETH = currencyB === ETHER
-      estimate = router.estimateGas.addLiquidityETH
-      method = router.addLiquidityETH
+      // estimate = router.estimateGas.addLiquidityETH
+      // method = router.addLiquidityETH
+      // args = [
+      //   wrappedCurrency(tokenBIsETH ? currencyA : currencyB, chainId)?.address ?? '', // token
+      //   (tokenBIsETH ? parsedAmountA : parsedAmountB).raw.toString(), // token desired
+      //   amountsMin[tokenBIsETH ? Field.CURRENCY_A : Field.CURRENCY_B].toString(), // token min
+      //   amountsMin[tokenBIsETH ? Field.CURRENCY_B : Field.CURRENCY_A].toString(), // eth min
+      //   account,
+      //   deadlineFromNow
+      // ]
+      // value = BigNumber.from((tokenBIsETH ? parsedAmountB : parsedAmountA).raw.toString())
+      estimate = helper.estimateGas.swapAndAddLiquidityEthAndToken
+      method = helper.swapAndAddLiquidityEthAndToken
       args = [
-        wrappedCurrency(tokenBIsETH ? currencyA : currencyB, chainId)?.address ?? '', // token
-        (tokenBIsETH ? parsedAmountA : parsedAmountB).raw.toString(), // token desired
-        amountsMin[tokenBIsETH ? Field.CURRENCY_A : Field.CURRENCY_B].toString(), // token min
-        amountsMin[tokenBIsETH ? Field.CURRENCY_B : Field.CURRENCY_A].toString(), // eth min
-        account,
+        wrappedCurrency(tokenBIsETH ? currencyA : currencyB, chainId)?.address ?? '', // tokenAddressB
+        (tokenBIsETH ? parsedAmountA : parsedAmountB).raw.toString(), // amountB
+        '1', // minLiquidityOut
+        account, // to
         deadlineFromNow
       ]
       value = BigNumber.from((tokenBIsETH ? parsedAmountB : parsedAmountA).raw.toString())
     } else {
-      estimate = router.estimateGas.addLiquidity
-      method = router.addLiquidity
+      // estimate = router.estimateGas.addLiquidity
+      // method = router.addLiquidity
+      // args = [
+      //   wrappedCurrency(currencyA, chainId)?.address ?? '',
+      //   wrappedCurrency(currencyB, chainId)?.address ?? '',
+      //   parsedAmountA.raw.toString(),
+      //   parsedAmountB.raw.toString(),
+      //   amountsMin[Field.CURRENCY_A].toString(),
+      //   amountsMin[Field.CURRENCY_B].toString(),
+      //   account,
+      //   deadlineFromNow
+      // ]
+      // value = null
+      estimate = helper.estimateGas.swapAndAddLiquidityTokenAndToken
+      method = helper.swapAndAddLiquidityTokenAndToken
       args = [
         wrappedCurrency(currencyA, chainId)?.address ?? '',
         wrappedCurrency(currencyB, chainId)?.address ?? '',
         parsedAmountA.raw.toString(),
         parsedAmountB.raw.toString(),
-        amountsMin[Field.CURRENCY_A].toString(),
-        amountsMin[Field.CURRENCY_B].toString(),
         account,
         deadlineFromNow
       ]
@@ -445,10 +467,75 @@ export default function AddLiquidity({
       </AppBody>
 
       {pair && !noLiquidity && pairState !== PairState.INVALID ? (
-        <AutoColumn style={{ minWidth: '20rem', marginTop: '1rem' }}>
+        <AutoColumn style={{ minWidth: '20rem', marginTop: '1rem', marginBottom: '1rem' }}>
           <MinimalPositionCard showUnwrapped={oneCurrencyIsWETH} pair={pair} />
         </AutoColumn>
       ) : null}
+
+      <AppBody>
+        <Wrapper>
+          <AutoColumn>
+
+            <ColumnCenter>
+              <GreyCard>
+                <AutoColumn gap="10px">
+                  <TYPE.link fontWeight={400} color={'text2'}>
+                    This is not an official tool.
+                  </TYPE.link>
+                  <TYPE.link fontWeight={400} color={'text2'}></TYPE.link>
+                  <TYPE.link fontWeight={400} color={'text2'}></TYPE.link>
+                  <TYPE.link fontWeight={400} color={'text2'}>
+                    This tool helps you add any ratio of tokens or ETH to a Uniswap pair.
+                  </TYPE.link>
+                  <TYPE.link fontWeight={400} color={'text2'}>
+                    For example, if there are 1 ETH + 400 DAI in a pair.
+                  </TYPE.link>
+                  <TYPE.link fontWeight={400} color={'text2'}>
+                    With this tool, you can add (1 ETH + 100 DAI) or (1 ETH + 0 DAI) or (0 ETH + 100 DAI) to the pair in one transaction.
+                  </TYPE.link>
+                  <TYPE.link fontWeight={400} color={'text2'}>
+                    Behind the scenes, the contract swaps part of your token (or ETH) to the other token (or ETH) before adding them all to the pair.
+                  </TYPE.link>
+                  <TYPE.link fontWeight={400} color={'text2'}>
+                    The contract will find the best amount to swap to maximize the amount added into the pair.
+                  </TYPE.link>
+                  <TYPE.link fontWeight={400} color={'text2'}></TYPE.link>
+                  <TYPE.link fontWeight={400} color={'text2'}></TYPE.link>
+                  <TYPE.link fontWeight={400} color={'text2'}>
+                    The source code is on <ExternalLink href="https://etherscan.io/address/0x6c742825731c3da30c5872a05ba7ca5e23a3733d#code">Etherscan</ExternalLink> and <ExternalLink href="https://github.com/Roger-Wu/uniswap-v2-periphery">GitHub</ExternalLink>.
+                  </TYPE.link>
+                  <TYPE.link fontWeight={400} color={'text2'}>
+                    The contract is tested but not fully audited.
+                  </TYPE.link>
+                  <TYPE.link fontWeight={400} color={'text2'}>
+                    Use at your own risk.
+                  </TYPE.link>
+                  <TYPE.link fontWeight={400} color={'text2'}>
+                    Basically, if there's a serious flaw in our contract, the Uniswap Router will still revert the transaction, so your funds will be safe.
+                  </TYPE.link>
+                  <TYPE.link fontWeight={400} color={'text2'}></TYPE.link>
+                  <TYPE.link fontWeight={400} color={'text2'}></TYPE.link>
+                  <TYPE.link fontWeight={400} color={'text2'}>
+                    Due to the inaccuracy of sqrt and division, if the amount to add is too small, the transaction may fail.
+                  </TYPE.link>
+                  <TYPE.link fontWeight={400} color={'text2'}>
+                    For example, adding 0.1 ETH to ETH-USDT pair may be ok, but adding 0.01 ETH to the same pair may fail.
+                  </TYPE.link>
+                  <TYPE.link fontWeight={400} color={'text2'}>
+                    We are still trying to fix this problem.
+                  </TYPE.link>
+                  <TYPE.link fontWeight={400} color={'text2'}></TYPE.link>
+                  <TYPE.link fontWeight={400} color={'text2'}></TYPE.link>
+                  <TYPE.link fontWeight={400} color={'text2'}>
+                    There is no extra fee because we don't want to waste more gas just to charge you. <span role="img" aria-label="Slightly Smiling Face">🙂</span>
+                  </TYPE.link>
+                </AutoColumn>
+              </GreyCard>
+            </ColumnCenter>
+
+          </AutoColumn>
+        </Wrapper>
+      </AppBody>
     </>
   )
 }
