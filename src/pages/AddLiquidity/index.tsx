@@ -71,11 +71,12 @@ export default function AddLiquidity({
     parsedAmounts,
     price,
     noLiquidity,
+    anyRatio,
     liquidityMinted,
     poolTokenPercentage,
     error
   } = useDerivedMintInfo(currencyA ?? undefined, currencyB ?? undefined)
-  const { onFieldAInput, onFieldBInput } = useMintActionHandlers(noLiquidity)
+  const { onFieldAInput, onFieldBInput } = useMintActionHandlers(noLiquidity, anyRatio)
 
   const isValid = !error
 
@@ -91,7 +92,7 @@ export default function AddLiquidity({
   // get formatted amounts
   const formattedAmounts = {
     [independentField]: typedValue,
-    [dependentField]: noLiquidity ? otherTypedValue : parsedAmounts[dependentField]?.toSignificant(6) ?? ''
+    [dependentField]: (noLiquidity || anyRatio) ? otherTypedValue : parsedAmounts[dependentField]?.toSignificant(6) ?? ''
   }
 
   // get the max amounts user can add
@@ -430,7 +431,7 @@ export default function AddLiquidity({
                   onClick={() => {
                     expertMode ? onAdd() : setShowConfirm(true)
                   }}
-                  disabled={!isValid || approvalA !== ApprovalState.APPROVED || approvalB !== ApprovalState.APPROVED}
+                  disabled={!isValid || approvalA !== ApprovalState.APPROVED || approvalB !== ApprovalState.APPROVED} // !isValid ||
                   error={!isValid && !!parsedAmounts[Field.CURRENCY_A] && !!parsedAmounts[Field.CURRENCY_B]}
                 >
                   <Text fontSize={20} fontWeight={500}>

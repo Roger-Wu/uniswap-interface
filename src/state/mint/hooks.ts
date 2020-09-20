@@ -7,11 +7,32 @@ import { useTotalSupply } from '../../data/TotalSupply'
 import { useActiveWeb3React } from '../../hooks'
 import { wrappedCurrency, wrappedCurrencyAmount } from '../../utils/wrappedCurrency'
 import { AppDispatch, AppState } from '../index'
-import { tryParseAmount } from '../swap/hooks'
+import { tryParseAmountAllowZero } from '../swap/hooks'
 import { useCurrencyBalances } from '../wallet/hooks'
 import { Field, typeInput } from './actions'
 
 const ZERO = JSBI.BigInt(0)
+const ONE = JSBI.BigInt(1)
+const TWO = JSBI.BigInt(2)
+const THREE = JSBI.BigInt(3)
+
+// mock the on-chain sqrt function
+export function sqrt(y: JSBI): JSBI {
+  // validateSolidityTypeInstance(y, SolidityType.uint256)
+  let z: JSBI = ZERO
+  let x: JSBI
+  if (JSBI.greaterThan(y, THREE)) {
+    z = y
+    x = JSBI.add(JSBI.divide(y, TWO), ONE)
+    while (JSBI.lessThan(x, z)) {
+      z = x
+      x = JSBI.divide(JSBI.add(JSBI.divide(y, x), x), TWO)
+    }
+  } else if (JSBI.notEqual(y, ZERO)) {
+    z = ONE
+  }
+  return z
+}
 
 export function useMintState(): AppState['mint'] {
   return useSelector<AppState, AppState['mint']>(state => state.mint)
@@ -29,6 +50,7 @@ export function useDerivedMintInfo(
   parsedAmounts: { [field in Field]?: CurrencyAmount }
   price?: Price
   noLiquidity?: boolean
+  anyRatio?: boolean
   liquidityMinted?: TokenAmount
   poolTokenPercentage?: Percent
   error?: string
@@ -55,6 +77,8 @@ export function useDerivedMintInfo(
   const noLiquidity: boolean =
     pairState === PairState.NOT_EXISTS || Boolean(totalSupply && JSBI.equal(totalSupply.raw, ZERO))
 
+  const anyRatio = true
+
   // balances
   const balances = useCurrencyBalances(account ?? undefined, [
     currencies[Field.CURRENCY_A],
@@ -66,11 +90,11 @@ export function useDerivedMintInfo(
   }
 
   // amounts
-  const independentAmount: CurrencyAmount | undefined = tryParseAmount(typedValue, currencies[independentField])
+  const independentAmount: CurrencyAmount | undefined = tryParseAmountAllowZero(typedValue, currencies[independentField])
   const dependentAmount: CurrencyAmount | undefined = useMemo(() => {
-    if (noLiquidity) {
+    if (noLiquidity || anyRatio) {
       if (otherTypedValue && currencies[dependentField]) {
-        return tryParseAmount(otherTypedValue, currencies[dependentField])
+        return tryParseAmountAllowZero(otherTypedValue, currencies[dependentField])
       }
       return undefined
     } else if (independentAmount) {
@@ -89,7 +113,7 @@ export function useDerivedMintInfo(
     } else {
       return undefined
     }
-  }, [noLiquidity, otherTypedValue, currencies, dependentField, independentAmount, currencyA, chainId, currencyB, pair])
+  }, [noLiquidity, anyRatio, otherTypedValue, currencies, dependentField, independentAmount, currencyA, chainId, currencyB, pair])
   const parsedAmounts: { [field in Field]: CurrencyAmount | undefined } = {
     [Field.CURRENCY_A]: independentField === Field.CURRENCY_A ? independentAmount : dependentAmount,
     [Field.CURRENCY_B]: independentField === Field.CURRENCY_A ? dependentAmount : independentAmount
@@ -116,7 +140,35 @@ export function useDerivedMintInfo(
       wrappedCurrencyAmount(currencyBAmount, chainId)
     ]
     if (pair && totalSupply && tokenAmountA && tokenAmountB) {
-      return pair.getLiquidityMinted(totalSupply, tokenAmountA, tokenAmountB)
+      // return pair.getLiquidityMinted(totalSupply, tokenAmountA, tokenAmountB)
+
+      const token0 = pair.token0
+      const token1 = pair.token1
+      const reserve0 = pair.reserve0.raw
+      const reserve1 = pair.reserve1.raw
+      let amount0
+      let amount1
+
+      if (token0.address === tokenAmountA.token.address && token1.address === tokenAmountB.token.address) {
+        amount0 = tokenAmountA.raw
+        amount1 = tokenAmountB.raw
+      } else if (token0.address === tokenAmountB.token.address && token1.address === tokenAmountA.token.address) {
+        amount0 = tokenAmountB.raw
+        amount1 = tokenAmountA.raw
+      } else {
+        return undefined
+      }
+
+      const currSqrt = sqrt(JSBI.multiply(reserve0, reserve1))
+      const nextSqrt = sqrt(
+        JSBI.multiply(
+          JSBI.add(reserve0, amount0),
+          JSBI.add(reserve1, amount1)
+        )
+      )
+      const sqrtDiff = JSBI.subtract(nextSqrt, currSqrt)
+      const liquidityMinted = JSBI.divide(JSBI.multiply(totalSupply.raw, sqrtDiff), currSqrt)
+      return new TokenAmount(totalSupply.token, liquidityMinted)
     } else {
       return undefined
     }
@@ -162,6 +214,7 @@ export function useDerivedMintInfo(
     parsedAmounts,
     price,
     noLiquidity,
+    anyRatio,
     liquidityMinted,
     poolTokenPercentage,
     error
@@ -169,7 +222,8 @@ export function useDerivedMintInfo(
 }
 
 export function useMintActionHandlers(
-  noLiquidity: boolean | undefined
+  noLiquidity: boolean | undefined,
+  anyRatio: boolean | undefined
 ): {
   onFieldAInput: (typedValue: string) => void
   onFieldBInput: (typedValue: string) => void
@@ -178,15 +232,15 @@ export function useMintActionHandlers(
 
   const onFieldAInput = useCallback(
     (typedValue: string) => {
-      dispatch(typeInput({ field: Field.CURRENCY_A, typedValue, noLiquidity: noLiquidity === true }))
+      dispatch(typeInput({ field: Field.CURRENCY_A, typedValue, noLiquidity: noLiquidity === true, anyRatio: anyRatio === true }))
     },
-    [dispatch, noLiquidity]
+    [dispatch, noLiquidity, anyRatio]
   )
   const onFieldBInput = useCallback(
     (typedValue: string) => {
-      dispatch(typeInput({ field: Field.CURRENCY_B, typedValue, noLiquidity: noLiquidity === true }))
+      dispatch(typeInput({ field: Field.CURRENCY_B, typedValue, noLiquidity: noLiquidity === true, anyRatio: anyRatio === true }))
     },
-    [dispatch, noLiquidity]
+    [dispatch, noLiquidity, anyRatio]
   )
 
   return {
