@@ -97,8 +97,6 @@ export function getRouterContract(_: number, library: Web3Provider, account?: st
 }
 
 export function getHelperContract(_: number, library: Web3Provider, account?: string): Contract {
-  console.log("IUniswapV2Router02ABI", IUniswapV2Router02ABI);
-  console.log("helperV1Abi", HELPERV1_ABI);
   return getContract(HELPERV1_ADDRESS, HELPERV1_ABI, library, account)
 }
 
