@@ -502,7 +502,7 @@ export default function AddLiquidity({
                   <TYPE.link fontWeight={400} color={'text2'}></TYPE.link>
                   <TYPE.link fontWeight={400} color={'text2'}></TYPE.link>
                   <TYPE.link fontWeight={400} color={'text2'}>
-                    The source code is on <ExternalLink href="https://etherscan.io/address/0x6c742825731c3da30c5872a05ba7ca5e23a3733d#code">Etherscan</ExternalLink> and <ExternalLink href="https://github.com/Roger-Wu/uniswap-v2-periphery">GitHub</ExternalLink>.
+                    The source code is on <ExternalLink href={`https://etherscan.io/address/${HELPERV1_ADDRESS}#code`}>Etherscan</ExternalLink> and <ExternalLink href="https://github.com/Roger-Wu/uniswap-v2-periphery">GitHub</ExternalLink>.
                   </TYPE.link>
                   <TYPE.link fontWeight={400} color={'text2'}>
                     The contract is tested but not fully audited.
