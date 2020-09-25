@@ -488,13 +488,13 @@ export default function AddLiquidity({
                     This tool helps you add any ratio of tokens or ETH to a Uniswap pair.
                   </TYPE.link>
                   <TYPE.link fontWeight={400} color={'text2'}>
-                    For example, if there are 1 ETH + 400 DAI in a pair.
+                    With this tool, for example, if there are 1 ETH + 400 DAI in a pair,
                   </TYPE.link>
                   <TYPE.link fontWeight={400} color={'text2'}>
-                    With this tool, you can add (1 ETH + 100 DAI) or (1 ETH + 0 DAI) or (0 ETH + 100 DAI) to the pair in one transaction.
+                    you can add (1 ETH + 100 DAI) or (1 ETH + 0 DAI) or (0 ETH + 100 DAI) to the pool in one transaction.
                   </TYPE.link>
                   <TYPE.link fontWeight={400} color={'text2'}>
-                    Behind the scenes, the contract swaps part of your token (or ETH) to the other token (or ETH) before adding them all to the pair.
+                    Behind the scenes, the contract swaps part of your token (or ETH) to the other token (or ETH) and then adds them all to the pair.
                   </TYPE.link>
                   <TYPE.link fontWeight={400} color={'text2'}>
                     The contract will find the best amount to swap to maximize the amount added into the pair.
@@ -502,16 +502,22 @@ export default function AddLiquidity({
                   <TYPE.link fontWeight={400} color={'text2'}></TYPE.link>
                   <TYPE.link fontWeight={400} color={'text2'}></TYPE.link>
                   <TYPE.link fontWeight={400} color={'text2'}>
-                    The source code is on <ExternalLink href={`https://etherscan.io/address/${HELPERV1_ADDRESS}#code`}>Etherscan</ExternalLink> and <ExternalLink href="https://github.com/Roger-Wu/uniswap-v2-periphery">GitHub</ExternalLink>.
+                    The source code can be found on <ExternalLink href={`https://etherscan.io/address/${HELPERV1_ADDRESS}#code`}>Etherscan</ExternalLink> and <ExternalLink href="https://github.com/Roger-Wu/uniswap-v2-periphery">GitHub</ExternalLink>.
                   </TYPE.link>
                   <TYPE.link fontWeight={400} color={'text2'}>
-                    The contract is tested but not fully audited.
+                    The contract is tested but not fully audited,
                   </TYPE.link>
                   <TYPE.link fontWeight={400} color={'text2'}>
-                    Use at your own risk.
+                    but if there's a serious flaw in our contract,
                   </TYPE.link>
                   <TYPE.link fontWeight={400} color={'text2'}>
-                    Basically, if there's a serious flaw in our contract, the Uniswap Router will still revert the transaction, so your funds will be safe.
+                    Uniswap's Router will still revert the transaction,
+                  </TYPE.link>
+                  <TYPE.link fontWeight={400} color={'text2'}>
+                    so your funds will be safe.
+                  </TYPE.link>
+                  <TYPE.link fontWeight={400} color={'text2'}>
+                    Still, use at your own risk.
                   </TYPE.link>
                   <TYPE.link fontWeight={400} color={'text2'}></TYPE.link>
                   <TYPE.link fontWeight={400} color={'text2'}></TYPE.link>
@@ -527,7 +533,7 @@ export default function AddLiquidity({
                   <TYPE.link fontWeight={400} color={'text2'}></TYPE.link>
                   <TYPE.link fontWeight={400} color={'text2'}></TYPE.link>
                   <TYPE.link fontWeight={400} color={'text2'}>
-                    There is no extra fee because we don't want to waste more gas just to charge you. <span role="img" aria-label="Slightly Smiling Face">🙂</span>
+                    There is no extra fee because we don't want to waste more gas just to charge ourselves. <span role="img" aria-label="Slightly Smiling Face">😄</span>
                   </TYPE.link>
                 </AutoColumn>
               </GreyCard>
