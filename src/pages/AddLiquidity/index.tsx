@@ -17,7 +17,7 @@ import { AddRemoveTabs } from '../../components/NavigationTabs'
 import { MinimalPositionCard } from '../../components/PositionCard'
 import Row, { RowBetween, RowFlat } from '../../components/Row'
 
-import { HELPERV1_ADDRESS } from '../../constants'
+import { HELPERV1_1_ADDRESS } from '../../constants'
 import { PairState } from '../../data/Reserves'
 import { useActiveWeb3React } from '../../hooks'
 import { useCurrency } from '../../hooks/Tokens'
@@ -27,7 +27,7 @@ import { Field } from '../../state/mint/actions'
 import { useDerivedMintInfo, useMintActionHandlers, useMintState } from '../../state/mint/hooks'
 
 import { useTransactionAdder } from '../../state/transactions/hooks'
-import { useIsExpertMode, useUserDeadline, useUserSlippageTolerance } from '../../state/user/hooks'
+import { useIsExpertMode, useUserSlippageTolerance } from '../../state/user/hooks'
 import { ExternalLink, TYPE } from '../../theme'
 import { calculateGasMargin, /*calculateSlippageAmount, /*getRouterContract,*/ getHelperContract } from '../../utils'
 import { maxAmountSpend } from '../../utils/maxAmountSpend'
@@ -85,14 +85,14 @@ export default function AddLiquidity({
   const [attemptingTxn, setAttemptingTxn] = useState<boolean>(false) // clicked confirm
 
   // txn values
-  const [deadline] = useUserDeadline() // custom from users settings
+  // const [deadline] = useUserDeadline() // custom from users settings
   const [allowedSlippage] = useUserSlippageTolerance() // custom from users
   const [txHash, setTxHash] = useState<string>('')
 
   // get formatted amounts
   const formattedAmounts = {
     [independentField]: typedValue,
-    [dependentField]: (noLiquidity || anyRatio) ? otherTypedValue : parsedAmounts[dependentField]?.toSignificant(6) ?? ''
+    [dependentField]: noLiquidity || anyRatio ? otherTypedValue : parsedAmounts[dependentField]?.toSignificant(6) ?? ''
   }
 
   // get the max amounts user can add
@@ -117,8 +117,8 @@ export default function AddLiquidity({
   )
 
   // check whether the user has approved the helper on the tokens
-  const [approvalA, approveACallback] = useApproveCallback(parsedAmounts[Field.CURRENCY_A], HELPERV1_ADDRESS)
-  const [approvalB, approveBCallback] = useApproveCallback(parsedAmounts[Field.CURRENCY_B], HELPERV1_ADDRESS)
+  const [approvalA, approveACallback] = useApproveCallback(parsedAmounts[Field.CURRENCY_A], HELPERV1_1_ADDRESS)
+  const [approvalB, approveBCallback] = useApproveCallback(parsedAmounts[Field.CURRENCY_B], HELPERV1_1_ADDRESS)
 
   const addTransaction = useTransactionAdder()
 
@@ -137,7 +137,7 @@ export default function AddLiquidity({
     //   [Field.CURRENCY_B]: calculateSlippageAmount(parsedAmountB, noLiquidity ? 0 : allowedSlippage)[0]
     // }
 
-    const deadlineFromNow = Math.ceil(Date.now() / 1000) + deadline
+    // const deadlineFromNow = Math.ceil(Date.now() / 1000) + deadline
 
     let estimate,
       method: (...args: any) => Promise<TransactionResponse>,
@@ -162,8 +162,7 @@ export default function AddLiquidity({
         wrappedCurrency(tokenBIsETH ? currencyA : currencyB, chainId)?.address ?? '', // tokenAddressB
         (tokenBIsETH ? parsedAmountA : parsedAmountB).raw.toString(), // amountB
         '1', // minLiquidityOut
-        account, // to
-        deadlineFromNow
+        account // to
       ]
       value = BigNumber.from((tokenBIsETH ? parsedAmountB : parsedAmountA).raw.toString())
     } else {
@@ -187,8 +186,8 @@ export default function AddLiquidity({
         wrappedCurrency(currencyB, chainId)?.address ?? '',
         parsedAmountA.raw.toString(),
         parsedAmountB.raw.toString(),
-        account,
-        deadlineFromNow
+        '1', // minLiquidityOut
+        account
       ]
       value = null
     }
@@ -502,7 +501,7 @@ export default function AddLiquidity({
                   <TYPE.link fontWeight={400} color={'text2'}></TYPE.link>
                   <TYPE.link fontWeight={400} color={'text2'}></TYPE.link>
                   <TYPE.link fontWeight={400} color={'text2'}>
-                    The source code can be found on <ExternalLink href={`https://etherscan.io/address/${HELPERV1_ADDRESS}#code`}>Etherscan</ExternalLink> and <ExternalLink href="https://github.com/Roger-Wu/uniswap-v2-periphery">GitHub</ExternalLink>.
+                    The source code can be found on <ExternalLink href={`https://etherscan.io/address/${HELPERV1_1_ADDRESS}#code`}>Etherscan</ExternalLink> and <ExternalLink href="https://github.com/Roger-Wu/uniswap-v2-periphery">GitHub</ExternalLink>.
                   </TYPE.link>
                   <TYPE.link fontWeight={400} color={'text2'}>
                     The contract is tested but not fully audited,
@@ -522,18 +521,21 @@ export default function AddLiquidity({
                   <TYPE.link fontWeight={400} color={'text2'}></TYPE.link>
                   <TYPE.link fontWeight={400} color={'text2'}></TYPE.link>
                   <TYPE.link fontWeight={400} color={'text2'}>
-                    Due to the inaccuracy of sqrt and division, if the amount to add is too small, the transaction may fail.
-                  </TYPE.link>
-                  <TYPE.link fontWeight={400} color={'text2'}>
-                    For example, adding 0.1 ETH to ETH-USDT pair may be ok, but adding 0.01 ETH to the same pair may fail.
-                  </TYPE.link>
-                  <TYPE.link fontWeight={400} color={'text2'}>
-                    We are still trying to fix this problem.
-                  </TYPE.link>
-                  <TYPE.link fontWeight={400} color={'text2'}></TYPE.link>
-                  <TYPE.link fontWeight={400} color={'text2'}></TYPE.link>
-                  <TYPE.link fontWeight={400} color={'text2'}>
                     There is no extra fee because we don't want to waste more gas just to charge ourselves. <span role="img" aria-label="Slightly Smiling Face">😄</span>
+                  </TYPE.link>
+                  <TYPE.link fontWeight={400} color={'text2'}></TYPE.link>
+                  <TYPE.link fontWeight={400} color={'text2'}></TYPE.link>
+                  <TYPE.link fontWeight={400} color={'text2'}>
+                    Upgrade contract and front-end to V1.1 on 2020-10-11
+                  </TYPE.link>
+                  <TYPE.link fontWeight={400} color={'text2'}>
+                    - Fix ETH-USDT, ETH-USDC tx failure bug.
+                  </TYPE.link>
+                  <TYPE.link fontWeight={400} color={'text2'}>
+                    - Optimize contract and save about 30000 gas per tx.
+                  </TYPE.link>
+                  <TYPE.link fontWeight={400} color={'text2'}>
+                    - Fix adding Token-Token front-end bug.
                   </TYPE.link>
                 </AutoColumn>
               </GreyCard>
