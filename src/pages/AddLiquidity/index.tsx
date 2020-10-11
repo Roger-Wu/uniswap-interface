@@ -484,13 +484,13 @@ export default function AddLiquidity({
                   <TYPE.link fontWeight={400} color={'text2'}></TYPE.link>
                   <TYPE.link fontWeight={400} color={'text2'}></TYPE.link>
                   <TYPE.link fontWeight={400} color={'text2'}>
-                    This tool helps you add any ratio of tokens or ETH to a Uniswap pair.
+                    With this tool, you can add any ratio of tokens or ETH to a Uniswap pair.
                   </TYPE.link>
                   <TYPE.link fontWeight={400} color={'text2'}>
-                    With this tool, for example, if there are 1 ETH + 400 DAI in a pair,
+                    For example, if there are 10 ETH + 4000 DAI in the ETH-DAI pair,
                   </TYPE.link>
                   <TYPE.link fontWeight={400} color={'text2'}>
-                    you can add (1 ETH + 100 DAI) or (1 ETH + 0 DAI) or (0 ETH + 100 DAI) to the pool in one transaction.
+                    you can add (1 ETH + 100 DAI) or (1 ETH + 0 DAI) or (0 ETH + 100 DAI) to the pool in one transaction with this tool.
                   </TYPE.link>
                   <TYPE.link fontWeight={400} color={'text2'}>
                     Behind the scenes, the contract swaps part of your token (or ETH) to the other token (or ETH) and then adds them all to the pair.
@@ -525,17 +525,23 @@ export default function AddLiquidity({
                   </TYPE.link>
                   <TYPE.link fontWeight={400} color={'text2'}></TYPE.link>
                   <TYPE.link fontWeight={400} color={'text2'}></TYPE.link>
-                  <TYPE.link fontWeight={400} color={'text2'}>
-                    Upgrade contract and front-end to V1.1 on 2020-10-11
+                  <TYPE.link fontWeight={600} color={'text2'}>
+                    Upgrade the contract and the front-end to V1.1 on 2020-10-11
                   </TYPE.link>
                   <TYPE.link fontWeight={400} color={'text2'}>
-                    - Fix ETH-USDT, ETH-USDC tx failure bug.
+                    Contract updates:
+                  </TYPE.link>
+                  <TYPE.link fontWeight={400} color={'text2'}>
+                    - Fix bug: a tx might fail if the amount adding to ETH-USDT or ETH-USDC is too small.
                   </TYPE.link>
                   <TYPE.link fontWeight={400} color={'text2'}>
                     - Optimize contract and save about 30000 gas per tx.
                   </TYPE.link>
                   <TYPE.link fontWeight={400} color={'text2'}>
-                    - Fix adding Token-Token front-end bug.
+                    Front-end updates:
+                  </TYPE.link>
+                  <TYPE.link fontWeight={400} color={'text2'}>
+                    - Fix bug: adding Token-Token might fail silently.
                   </TYPE.link>
                 </AutoColumn>
               </GreyCard>
