@@ -484,19 +484,19 @@ export default function AddLiquidity({
                   <TYPE.link fontWeight={400} color={'text2'}></TYPE.link>
                   <TYPE.link fontWeight={400} color={'text2'}></TYPE.link>
                   <TYPE.link fontWeight={400} color={'text2'}>
-                    With this tool, you can add any ratio of tokens or ETH to a Uniswap pair.
+                    This tool allows you to add tokens or ETH to a Uniswap V2 pair in any proportion.
                   </TYPE.link>
                   <TYPE.link fontWeight={400} color={'text2'}>
-                    For example, if there are 10 ETH + 4000 DAI in the ETH-DAI pair,
+                    For example, no matter how much ETH and DAI are in the pool of ETH-DAI pair,
                   </TYPE.link>
                   <TYPE.link fontWeight={400} color={'text2'}>
-                    you can add (1 ETH + 100 DAI) or (1 ETH + 0 DAI) or (0 ETH + 100 DAI) to the pool in one transaction with this tool.
+                    you can still add any amount of ETH and DAI to the pool in one transaction, such as [1 ETH + 100 DAI] or [1 ETH + 0 DAI] or [0 ETH + 100 DAI].
                   </TYPE.link>
                   <TYPE.link fontWeight={400} color={'text2'}>
                     Behind the scenes, the contract swaps part of your token (or ETH) to the other token (or ETH) and then adds them all to the pair.
                   </TYPE.link>
                   <TYPE.link fontWeight={400} color={'text2'}>
-                    The contract will find the best amount to swap to maximize the amount added into the pair.
+                    The amount to swap is calculated with <ExternalLink href="https://www.wolframalpha.com/input/?i=solve+%28C+-+x%29+*+%28B+%2B+D%29+%3D+%28A+%2B+C%29+*+%28D+%2B+y%29%2C+%281000+*+A+%2B+997+*+x%29+*+%28B+-+y%29+%3D+1000+*+A+*+B">this formula</ExternalLink> to maximize the funds added into the pool.
                   </TYPE.link>
                   <TYPE.link fontWeight={400} color={'text2'}></TYPE.link>
                   <TYPE.link fontWeight={400} color={'text2'}></TYPE.link>
@@ -504,24 +504,24 @@ export default function AddLiquidity({
                     The source code can be found on <ExternalLink href={`https://etherscan.io/address/${HELPERV1_1_ADDRESS}#code`}>Etherscan</ExternalLink> and <ExternalLink href="https://github.com/Roger-Wu/uniswap-v2-periphery">GitHub</ExternalLink>.
                   </TYPE.link>
                   <TYPE.link fontWeight={400} color={'text2'}>
-                    The contract is tested but not fully audited,
+                    The contract is tested but not fully audited;
                   </TYPE.link>
                   <TYPE.link fontWeight={400} color={'text2'}>
-                    but if there's a serious flaw in our contract,
+                    however, if there's a serious flaw in our contract,
                   </TYPE.link>
                   <TYPE.link fontWeight={400} color={'text2'}>
-                    Uniswap's Router will still revert the transaction,
+                    Uniswap's Router will revert the transaction,
                   </TYPE.link>
                   <TYPE.link fontWeight={400} color={'text2'}>
-                    so your funds will be safe.
+                    ensuring that your funds are safe.
                   </TYPE.link>
                   <TYPE.link fontWeight={400} color={'text2'}>
-                    Still, use at your own risk.
+                    Nevertheless, use at your own risk.
                   </TYPE.link>
                   <TYPE.link fontWeight={400} color={'text2'}></TYPE.link>
                   <TYPE.link fontWeight={400} color={'text2'}></TYPE.link>
                   <TYPE.link fontWeight={400} color={'text2'}>
-                    There is no extra fee because we don't want to waste more gas just to charge ourselves. <span role="img" aria-label="Slightly Smiling Face">😄</span>
+                    We don't charge an additional fee because we don't want to waste more gas charging ourselves. <span role="img" aria-label="Slightly Smiling Face">😄</span>
                   </TYPE.link>
                   <TYPE.link fontWeight={400} color={'text2'}></TYPE.link>
                   <TYPE.link fontWeight={400} color={'text2'}></TYPE.link>
